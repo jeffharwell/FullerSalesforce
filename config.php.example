@@ -1,0 +1,13 @@
+<?php
+// Rename this file to config.php and 
+// fill in the correct username, password, and security_token
+
+// Salesforce Username
+define("USERNAME", "XXXXXXXXXXXXXX");
+// Salesforce Password
+define("PASSWORD", "XXXXXXXXXXXXXX");
+// Salesforce Security Token, get this from your salesforce administrator
+// log into Salesforce and reset your security token and you will get a new
+// one via email
+define("SECURITY_TOKEN", "XXXXXXXXXXXXXXXXX");
+?>
