@@ -1,6 +1,7 @@
 <?php
 //Modify to where you installed the Force.com-Toolkit-for-PHP
 require_once('salesforce/Force.com-Toolkit-for-PHP/soapclient/SforcePartnerClient.php');
+require('config.php');
 
 // Here is the FullerSalesforce PHP class
 require("FullerSalesforce.php");
