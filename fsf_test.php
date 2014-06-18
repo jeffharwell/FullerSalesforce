@@ -13,13 +13,16 @@ $wsdl_file = 'salesforce/Force.com-Toolkit-for-PHP/soapclient/partner.wsdl.xml';
 // username, password, security token, and path to the WSDL Partner XML file
 $sfs = new FullerSalesForce\FullerSalesForce("jgroff@160over90.com", "fuller2014", "KGJBIxuLviYtpjCqedGTifc82", $wsdl_file);
 
+// If you want to do a debug run, uncomment the below line
+//$sfs->setDebug();
+
 // Here is the record that we want to add.
-$record = array(
+$record1 = array(
     'Alumni_Email__c' => 'jharwell@fuller.edu',
     'Alumni_Last_Name__c' => 'Harwell',
     'Alumni_First_Name__c' => 'Jeff',
     'FirstName' => 'Jane',
-    'LastName' => 'DoeTestThree',
+    'LastName' => 'DoeTestFour',
     'MailingStreet' => '555 Test Lane',
     'MailingCity' => 'Pasadena',
     'MailingState' => 'CA',
@@ -33,26 +36,13 @@ $record = array(
     'Alumni_IP__c' => '127.0.0.1'
 );
 
-/* These were invalid before
-MailingStreet
-MailingCity
-MailingState
-MailingPostalCode
-MailingCountry
-Preferred_Phone__c
-Email
-TargetX_SRMb__Gender__c
- */
-
 // Add it
-$resp = $sfs->addLead($record);
-
-// $resp is the value returned by the API
+$resp = $sfs->addLead($record1);
 var_dump($resp);
 
 // Grab the Record ID
 $id = $resp[0]->id;
-echo "Id is $id";
+echo "Id is $id\n";
 
 // Writing the newly added record IDs to a file, so that I can 
 // pass them to the Salesforce administrator so that they can

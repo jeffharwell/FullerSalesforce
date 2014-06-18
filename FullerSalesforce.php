@@ -23,6 +23,17 @@ class FullerSalesforce {
                                    "Alumni_Timestamp__c","Alumni_IP__c");
     // All records MUST have values defined in these column
     private $required_columns = array("LastName");
+    // Holds the potential strings that could be entered to
+    // indicate "the United States of Ameria" as the mailing country
+    private $usa_strings = array("United States of America",
+                                 "The United States of America",
+                                 "USA",
+                                 "US",
+                                 "United States",
+                                 "America");
+    // Debug flag, if debug is set the class will not push to
+    // salesforce.
+    private $debug = False;
 
 
     /**
@@ -46,6 +57,16 @@ class FullerSalesforce {
         $this->connection->login($username, $password.$security_token);
     }
 
+    /**
+     * Set the debug flag
+     *
+     * The debug flag instructs the class to not push to Salesforce, but
+     * instead to var_dump the array that it would push to Salesforce. Sort
+     * of like a dry run.
+     */
+    function setDebug() {
+        $this->debug = True;
+    }
 
     /**
      * Adds a lead to Salesforce
@@ -84,22 +105,64 @@ class FullerSalesforce {
             }
         }
 
+        // Per Chris Lux Fuller's Salesforce data standards require that the interface 
+        // put in a NULL for the country if USA is specified, meaning that for USA
+        // we unset the 'MailingCountry' value.
+        //
+        // Notice that the algorithm is doing a case-insensitive match that ignores 
+        // beginning and ending whitespace
+        
+        // Convert our string of ways to specify USA to lowercase
+        $lc_usa_strings = array_map("strtolower", $this->usa_strings);
+
+        // Do the compare, case insensitive and ignoring ending and beginning whitespace
+        if (array_key_exists('MailingCountry', $record)) {
+            if (in_array(strtolower(trim($record['MailingCountry'])), $lc_usa_strings)) {
+                // Found a US country string, unset the record in accordance with the
+                // Fuller SRM Data Standards
+                unset($record['MailingCountry']);
+            }
+        }
+
         // Add the accountID
         $records[0] = new \SObject();
         $records[0]->fields = $record;
         $records[0]->type = 'Contact';
-        $response = $this->connection->create($records);
 
-        // If the add didn't succeed throw an exception with a, hopefully, 
-        // useful message
-        if (!$response[0]->success) {
-            $m = $response[0]->errors[0]->message;
-            $s = $response[0]->errors[0]->statusCode;
-            throw new \Exception("Insert Failed: Status - $s, Message -$m");
+
+        if (!$this->debug) {
+            // Not in debug mode, push the record into Salesforce and return the
+            // result
+            $response = $this->connection->create($records);
+
+            // If the add didn't succeed throw an exception with a, hopefully, 
+            // useful message
+            if (!$response[0]->success) {
+                $m = $response[0]->errors[0]->message;
+                $s = $response[0]->errors[0]->statusCode;
+                throw new \Exception("Insert Failed: Status - $s, Message -$m");
+            }
+
+            return $response;
+        } else {
+            // In debug mode
+            // dump the record
+            var_dump($records);
+
+            // uugh -- put together a error object that looks like
+            // something Salesforce would generate so that debug 
+            // mode doesn't nuke downstream code
+            $respobj = new \stdClass;
+            $respobj->id="xxxDEBUGMODExxx";
+            $respobj->success = False;
+            $errorobj = new \stdClass;
+            $errorobj->message = "In Debug Mode, no Record Pushed to Salesforce";
+            $errorobj->statusCode = 50000;
+            $respobj->errors = array($errorobj);
+
+            // Salesforce always returns an array of response objects
+            return array($respobj);
         }
-
-        // Returns the array that was return by the API call
-        return $response;
     }
 }
 
