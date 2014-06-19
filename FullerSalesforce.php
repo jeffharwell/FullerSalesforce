@@ -31,6 +31,10 @@ class FullerSalesforce {
                                  "US",
                                  "United States",
                                  "America");
+    // Regex pattern of characters to replace in phone numbers
+    // before pushing to salesforce
+    private $phone_replacement_regex = "/[-\)\(\+\.]+/";
+
     // Debug flag, if debug is set the class will not push to
     // salesforce.
     private $debug = False;
@@ -123,6 +127,14 @@ class FullerSalesforce {
                 unset($record['MailingCountry']);
             }
         }
+
+        // Per Chris Lux Fuller's Salesforce data standards require that the delimeters
+        // be removed from phone numbers
+
+        if (array_key_exists('Preferred_Phone__c', $record)) {
+            $record['Preferred_Phone__c'] = preg_replace($this->phone_replacement_regex,'',$record['Preferred_Phone__c']);
+        }
+
 
         // Add the accountID
         $records[0] = new \SObject();
